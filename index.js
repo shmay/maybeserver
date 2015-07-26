@@ -2,6 +2,8 @@
 
 var express = require('express');
 var app = express();
+var https = require('https');
+var fs = require('fs');
 var bodyParser = require('body-parser');
 var Firebase = require('firebase');
 //var crypto = require('crypto');
@@ -10,10 +12,17 @@ app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 /////app.use(multer()); // for parsing multipart/form-data
 
-// respond with "hello world" when a GET request is made to the homepage
-app.get('/heyo', function(req, res) {
-  res.send('Hello World!');
-  console.log('heyo');
+var privateKey = fs.readFileSync('server.key');
+var certificate = fs.readFileSync('server.crt');
+
+https.createServer({
+  key: privateKey,
+  cert: certificate
+}, app).listen(8000);
+
+app.get('/', function (req, res) {
+    res.writeHead(200);
+    res.end("hello world\n");
 });
 
 app.post('/new_spot', function (req, res) {
@@ -83,7 +92,7 @@ function randomString(length) {
 var generateToken = function(ref,spotid,cb) {
   var viteRef = ref.child('invites');
 
-  var token = randomString(10);
+  var token = 'X' + randomString(9);
 
   viteRef.child(token).once('value', function(snapshot) {
     var exists = (snapshot.val() !== null);
@@ -134,6 +143,7 @@ app.post('/spot_status_changed', function (req, res) {
 
 app.post('/gen_invite', function (req, res) {
   if (req.body.token && req.body.spotid) {
+    ref = new Firebase('https://androidkye.firebaseio.com/');
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
       if (err) {
