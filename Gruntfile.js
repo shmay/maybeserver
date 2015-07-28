@@ -17,7 +17,8 @@ module.exports = function (grunt) {
         extract: 'auto'
       },
       all: [
-        'index.js'
+        'index.js',
+        'cronjobs/*.js'
       ]
     }
   });

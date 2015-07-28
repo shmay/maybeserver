@@ -2,8 +2,6 @@
 
 var express = require('express');
 var app = express();
-var https = require('https');
-var fs = require('fs');
 var bodyParser = require('body-parser');
 var Firebase = require('firebase');
 //var crypto = require('crypto');
@@ -12,14 +10,17 @@ app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 /////app.use(multer()); // for parsing multipart/form-data
 
+var url = 'https://androidkye.firebaseio.com/';
+//var url = 'https://maybeso.firebaseio.com/';
+
 app.get('/', function (req, res) {
-    res.writeHead(200);
-    res.end("hello world\n");
+  res.writeHead(200);
+  res.end('hello world\n');
 });
 
 app.post('/new_spot', function (req, res) {
   if (req.body.token) {
-    ref = new Firebase('https://androidkye.firebaseio.com/');
+    ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err) { 
       if (err) {
@@ -108,7 +109,7 @@ app.post('/spot_status_changed', function (req, res) {
   if (req.body.token && req.body.spotid && (status === 0 || status === 1 || status === 2)) {
 
     console.log('good');
-    ref = new Firebase('https://androidkye.firebaseio.com/');
+    ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
       if (err) {
@@ -135,7 +136,7 @@ app.post('/spot_status_changed', function (req, res) {
 
 app.post('/gen_invite', function (req, res) {
   if (req.body.token && req.body.spotid) {
-    ref = new Firebase('https://androidkye.firebaseio.com/');
+    ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
       if (err) {
@@ -167,7 +168,7 @@ app.post('/edit_spot', function (req, res) {
   if (req.body.token && req.body.spotid) {
     console.log('edit_spot');
     console.log(req.body.name);
-    ref = new Firebase('https://androidkye.firebaseio.com/');
+    ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
       if (err) {
@@ -195,7 +196,7 @@ app.post('/edit_spot', function (req, res) {
 app.post('/remove_fence_for_user', function (req, res) {
   console.log('remove_fence_for_user');
   if (req.body.token && req.body.spotid) {
-    ref = new Firebase('https://androidkye.firebaseio.com/');
+    ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
       if (err) {
@@ -226,7 +227,7 @@ app.post('/remove_fence_for_user', function (req, res) {
 
 app.post('/remove_spot', function (req, res) {
   if (req.body.token && req.body.spotid) {
-    ref = new Firebase('https://androidkye.firebaseio.com/');
+    ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
       if (err) {
@@ -264,7 +265,7 @@ app.post('/remove_spot', function (req, res) {
 
 app.post('/remove_user', function (req, res) {
   if (req.body.token && req.body.spotid && req.body.uid) {
-    ref = new Firebase('https://androidkye.firebaseio.com/');
+    ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) {
       if (err) {
@@ -304,7 +305,7 @@ app.post('/remove_user', function (req, res) {
 
 app.post('/leave_spot', function (req, res) {
   if (req.body.token && req.body.spotid) {
-    ref = new Firebase('https://androidkye.firebaseio.com/');
+    ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
       if (err) {
@@ -337,7 +338,7 @@ app.post('/leave_spot', function (req, res) {
 app.post('/update_name', function (req, res) {
   console.log('update_name');
   if (req.body.token && req.body.newname) {
-    ref = new Firebase('https://androidkye.firebaseio.com/');
+    ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
       if (err) {
@@ -374,7 +375,7 @@ app.post('/join', function (req, res) {
   if (req.body.token && req.body.pin) {
     console.log('PIN');
     console.log(req.body.pin);
-    ref = new Firebase('https://androidkye.firebaseio.com/');
+    ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
       if (err) {
@@ -421,37 +422,48 @@ app.post('/join', function (req, res) {
 
 app.post('/join_w_pin', function (req, res) {
   if (req.body.token && req.body.pin) {
-    ref = new Firebase('https://androidkye.firebaseio.com/');
+    ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
       if (err) {
         res.send({success:0});
       } else {
         var vitRef = ref.child('invites/' + req.body.pin);
-        vitRef.once('value', function(snapshot) {
-          if (snapshot.val() === null) {
-            res.send({success:-1});
+        var cref = ref.child('users/' + authData.uid + '/bad_pin_cnt');
+        cref.once('value', function(snap) {
+          var v = snap.val();
+          var cnt = parseInt(v) || 0;
+          if (cnt > 9) {
+            res.send({success:-2});
           } else {
-            ref.authWithCustomToken(process.env.MBSECRET, function(error) {
-              if (error) {
-                res.send({success:0});
+            vitRef.once('value', function(snapshot) {
+              if (snapshot.val() === null) {
+                cnt += 1;
+                cref.set(cnt);
+                res.send({success:-1});
               } else {
-                var spotid = snapshot.val().spotid;
-                vitRef.child('users/' + authData.uid).set(true);
+                ref.authWithCustomToken(process.env.MBSECRET, function(error) {
+                  if (error) {
+                    res.send({success:0});
+                  } else {
+                    var spotid = snapshot.val().spotid;
+                    vitRef.child('users/' + authData.uid).set(true);
 
-                var spotRef = ref.child('spots/' + spotid);
-                spotRef.once('value', function(snap) {
-                  var val = snap.val();
+                    var spotRef = ref.child('spots/' + spotid);
+                    spotRef.once('value', function(snap) {
+                      var val = snap.val();
 
-                  res.send({
-                    success:1,
-                    pin: req.body.pin,
-                    id: spotid,
-                    lat: parseFloat(val.lat),
-                    lng: parseFloat(val.lng),
-                    name: val.name,
-                    radius: parseFloat(val.radius)
-                  });
+                      res.send({
+                        success:1,
+                        pin: req.body.pin,
+                        id: spotid,
+                        lat: parseFloat(val.lat),
+                        lng: parseFloat(val.lng),
+                        name: val.name,
+                        radius: parseFloat(val.radius)
+                      });
+                    });
+                  }
                 });
               }
             });
