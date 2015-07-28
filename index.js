@@ -2,8 +2,6 @@
 
 var express = require('express');
 var app = express();
-var https = require('https');
-var fs = require('fs');
 var bodyParser = require('body-parser');
 var Firebase = require('firebase');
 //var crypto = require('crypto');
@@ -17,7 +15,7 @@ var url = 'https://androidkye.firebaseio.com/';
 
 app.get('/', function (req, res) {
   res.writeHead(200);
-  res.end("hello world\n");
+  res.end('hello world\n');
 });
 
 app.post('/new_spot', function (req, res) {
@@ -431,30 +429,41 @@ app.post('/join_w_pin', function (req, res) {
         res.send({success:0});
       } else {
         var vitRef = ref.child('invites/' + req.body.pin);
-        vitRef.once('value', function(snapshot) {
-          if (snapshot.val() === null) {
-            res.send({success:-1});
+        var cref = ref.child('users/' + authData.uid + '/bad_pin_cnt');
+        cref.once('value', function(snap) {
+          var v = snap.val();
+          var cnt = parseInt(v) || 0;
+          if (cnt > 9) {
+            res.send({success:-2});
           } else {
-            ref.authWithCustomToken(process.env.MBSECRET, function(error) {
-              if (error) {
-                res.send({success:0});
+            vitRef.once('value', function(snapshot) {
+              if (snapshot.val() === null) {
+                cnt += 1;
+                cref.set(cnt);
+                res.send({success:-1});
               } else {
-                var spotid = snapshot.val().spotid;
-                vitRef.child('users/' + authData.uid).set(true);
+                ref.authWithCustomToken(process.env.MBSECRET, function(error) {
+                  if (error) {
+                    res.send({success:0});
+                  } else {
+                    var spotid = snapshot.val().spotid;
+                    vitRef.child('users/' + authData.uid).set(true);
 
-                var spotRef = ref.child('spots/' + spotid);
-                spotRef.once('value', function(snap) {
-                  var val = snap.val();
+                    var spotRef = ref.child('spots/' + spotid);
+                    spotRef.once('value', function(snap) {
+                      var val = snap.val();
 
-                  res.send({
-                    success:1,
-                    pin: req.body.pin,
-                    id: spotid,
-                    lat: parseFloat(val.lat),
-                    lng: parseFloat(val.lng),
-                    name: val.name,
-                    radius: parseFloat(val.radius)
-                  });
+                      res.send({
+                        success:1,
+                        pin: req.body.pin,
+                        id: spotid,
+                        lat: parseFloat(val.lat),
+                        lng: parseFloat(val.lng),
+                        name: val.name,
+                        radius: parseFloat(val.radius)
+                      });
+                    });
+                  }
                 });
               }
             });
