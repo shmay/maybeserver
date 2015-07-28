@@ -12,14 +12,6 @@ app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 /////app.use(multer()); // for parsing multipart/form-data
 
-var privateKey = fs.readFileSync('server.key');
-var certificate = fs.readFileSync('server.crt');
-
-https.createServer({
-  key: privateKey,
-  cert: certificate
-}, app).listen(8000);
-
 app.get('/', function (req, res) {
     res.writeHead(200);
     res.end("hello world\n");
