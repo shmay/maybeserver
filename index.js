@@ -10,8 +10,14 @@ app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 /////app.use(multer()); // for parsing multipart/form-data
 
-var url = 'https://androidkye.firebaseio.com/';
-//var url = 'https://maybeso.firebaseio.com/';
+var url;
+if (process.env.MBPROD === 'true') {
+  url = 'https://maybeso.firebaseio.com/';
+} else {
+  url = 'https://androidkye.firebaseio.com/';
+}
+console.log('url');
+console.log(url);
 
 app.get('/', function (req, res) {
   res.writeHead(200);
