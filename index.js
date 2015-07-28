@@ -12,22 +12,17 @@ app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 /////app.use(multer()); // for parsing multipart/form-data
 
-var privateKey = fs.readFileSync('server.key');
-var certificate = fs.readFileSync('server.crt');
-
-https.createServer({
-  key: privateKey,
-  cert: certificate
-}, app).listen(8000);
+var url = 'https://androidkye.firebaseio.com/';
+//var url = 'https://maybeso.firebaseio.com/';
 
 app.get('/', function (req, res) {
-    res.writeHead(200);
-    res.end("hello world\n");
+  res.writeHead(200);
+  res.end("hello world\n");
 });
 
 app.post('/new_spot', function (req, res) {
   if (req.body.token) {
-    ref = new Firebase('https://androidkye.firebaseio.com/');
+    ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err) { 
       if (err) {
@@ -116,7 +111,7 @@ app.post('/spot_status_changed', function (req, res) {
   if (req.body.token && req.body.spotid && (status === 0 || status === 1 || status === 2)) {
 
     console.log('good');
-    ref = new Firebase('https://androidkye.firebaseio.com/');
+    ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
       if (err) {
@@ -143,7 +138,7 @@ app.post('/spot_status_changed', function (req, res) {
 
 app.post('/gen_invite', function (req, res) {
   if (req.body.token && req.body.spotid) {
-    ref = new Firebase('https://androidkye.firebaseio.com/');
+    ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
       if (err) {
@@ -175,7 +170,7 @@ app.post('/edit_spot', function (req, res) {
   if (req.body.token && req.body.spotid) {
     console.log('edit_spot');
     console.log(req.body.name);
-    ref = new Firebase('https://androidkye.firebaseio.com/');
+    ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
       if (err) {
@@ -203,7 +198,7 @@ app.post('/edit_spot', function (req, res) {
 app.post('/remove_fence_for_user', function (req, res) {
   console.log('remove_fence_for_user');
   if (req.body.token && req.body.spotid) {
-    ref = new Firebase('https://androidkye.firebaseio.com/');
+    ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
       if (err) {
@@ -234,7 +229,7 @@ app.post('/remove_fence_for_user', function (req, res) {
 
 app.post('/remove_spot', function (req, res) {
   if (req.body.token && req.body.spotid) {
-    ref = new Firebase('https://androidkye.firebaseio.com/');
+    ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
       if (err) {
@@ -272,7 +267,7 @@ app.post('/remove_spot', function (req, res) {
 
 app.post('/remove_user', function (req, res) {
   if (req.body.token && req.body.spotid && req.body.uid) {
-    ref = new Firebase('https://androidkye.firebaseio.com/');
+    ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) {
       if (err) {
@@ -312,7 +307,7 @@ app.post('/remove_user', function (req, res) {
 
 app.post('/leave_spot', function (req, res) {
   if (req.body.token && req.body.spotid) {
-    ref = new Firebase('https://androidkye.firebaseio.com/');
+    ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
       if (err) {
@@ -345,7 +340,7 @@ app.post('/leave_spot', function (req, res) {
 app.post('/update_name', function (req, res) {
   console.log('update_name');
   if (req.body.token && req.body.newname) {
-    ref = new Firebase('https://androidkye.firebaseio.com/');
+    ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
       if (err) {
@@ -382,7 +377,7 @@ app.post('/join', function (req, res) {
   if (req.body.token && req.body.pin) {
     console.log('PIN');
     console.log(req.body.pin);
-    ref = new Firebase('https://androidkye.firebaseio.com/');
+    ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
       if (err) {
@@ -429,7 +424,7 @@ app.post('/join', function (req, res) {
 
 app.post('/join_w_pin', function (req, res) {
   if (req.body.token && req.body.pin) {
-    ref = new Firebase('https://androidkye.firebaseio.com/');
+    ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
       if (err) {
