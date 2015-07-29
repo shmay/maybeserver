@@ -1,7 +1,13 @@
 'use strict';
 
 var Firebase = require('firebase');
-var url = 'https://androidkye.firebaseio.com/';
+var url;
+if (process.env.MBPROD === 'true') {
+  url = 'https://maybeso.firebaseio.com/';
+} else {
+  url = 'https://androidkye.firebaseio.com/';
+}
+
 var ref = new Firebase(url);
 
 ref.authWithCustomToken(process.env.MBSECRET, function(error) {
