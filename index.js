@@ -58,6 +58,7 @@ app.post('/new_spot', function (req, res) {
 
             spotRef.once('value', function(snap) {
               var val = snap.val();
+              console.log('yup');
 
               res.send({
                 success:1,
@@ -427,14 +428,17 @@ app.post('/join', function (req, res) {
 });
 
 app.post('/join_w_pin', function (req, res) {
+  console.log('hey');
   if (req.body.token && req.body.pin) {
     ref = new Firebase(url);
 
+    console.log('no');
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
       if (err) {
         res.send({success:0});
       } else {
         var vitRef = ref.child('invites/' + req.body.pin);
+        console.log('pin: ' + req.body.pin);
         var cref = ref.child('users/' + authData.uid + '/bad_pin_cnt');
         cref.once('value', function(snap) {
           var v = snap.val();
@@ -442,13 +446,18 @@ app.post('/join_w_pin', function (req, res) {
           if (cnt > 9) {
             res.send({success:-2});
           } else {
+            console.log('cmon');
             vitRef.once('value', function(snapshot) {
+              console.log('why');
+              console.log(snapshot.val());
               if (snapshot.val() === null) {
+                console.log('null');
                 cnt += 1;
                 cref.set(cnt);
                 res.send({success:-1});
               } else {
                 ref.authWithCustomToken(process.env.MBSECRET, function(error) {
+                  console.log('ok');
                   if (error) {
                     res.send({success:0});
                   } else {
