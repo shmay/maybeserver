@@ -327,7 +327,7 @@ app.post('/leave_spot', function (req, res) {
               var val = snap.val();
               if (val === true || val === false) {
                 spotRef.set(-1);
-                ref.child('spots/' + req.body.spotid + '/users/' + authData).remove();
+                ref.child('spots/' + req.body.spotid + '/users/' + authData.uid).remove();
                 res.send({success: 1});
               } else {
                 res.send({success: 0});
