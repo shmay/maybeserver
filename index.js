@@ -16,8 +16,6 @@ if (process.env.MBPROD === 'true') {
 } else {
   url = 'https://androidkye.firebaseio.com/';
 }
-console.log('url');
-console.log(url);
 
 app.get('/', function (req, res) {
   res.writeHead(200);
@@ -58,7 +56,6 @@ app.post('/new_spot', function (req, res) {
 
             spotRef.once('value', function(snap) {
               var val = snap.val();
-              console.log('yup');
 
               res.send({
                 success:1,
@@ -110,9 +107,7 @@ var generateToken = function(ref,spotid,cb) {
 
 app.post('/spot_status_changed', function (req, res) {
   var status = parseInt(req.body.status);
-  console.log('spot_status_changed');
-  console.log(status);
-  console.log(req.body);
+
   if (req.body.token && req.body.spotid && (status === 0 || status === 1 || status === 2)) {
 
     console.log('good');
@@ -388,19 +383,18 @@ app.post('/join', function (req, res) {
       if (err) {
         res.send({success:0});
       } else {
+        ref.authWithCustomToken(process.env.MBSECRET, function(error) {
+          if (error) {
+            res.send({success: 0});
+          } else {
+            ref.child('invites/' + req.body.pin).once('value', function(snapshot) {
+              var val = snapshot.val();
+              if (val === null) {
+                res.send({success:-1});
+              } else { 
+                var uRef = ref.child('users/' + authData.uid);
 
-        ref.child('invites/' + req.body.pin).once('value', function(snapshot) {
-          var val = snapshot.val();
-          if (val === null) {
-            res.send({success:-1});
-          } else { 
-            var uRef = ref.child('users/' + authData.uid);
-
-            if (val.users[authData.uid]) {
-              ref.authWithCustomToken(process.env.MBSECRET, function(error) {
-                if (error) {
-                  res.send({success: 0});
-                } else {
+                if (val.users[authData.uid]) {
                   uRef.once('value', function(snap) {
                     var name = snap.val().name;
                     var spotRef = ref.child('spots/' + val.spotid);
@@ -415,51 +409,47 @@ app.post('/join', function (req, res) {
 
                     res.send({ success: 1 });
                   });
+                } else {
+                  res.send({success: -2});
                 }
-              });
-            } else {
-              res.send({success: -2});
-            }
+              }
+            });
           }
-       });
+        });
       }
     });
   }
 });
 
 app.post('/join_w_pin', function (req, res) {
-  console.log('hey');
+  console.log('join_w_pin');
   if (req.body.token && req.body.pin) {
     ref = new Firebase(url);
 
-    console.log('no');
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
       if (err) {
         res.send({success:0});
       } else {
-        var vitRef = ref.child('invites/' + req.body.pin);
-        console.log('pin: ' + req.body.pin);
-        var cref = ref.child('users/' + authData.uid + '/bad_pin_cnt');
-        cref.once('value', function(snap) {
-          var v = snap.val();
-          var cnt = parseInt(v) || 0;
-          if (cnt > 9) {
-            res.send({success:-2});
+        ref.authWithCustomToken(process.env.MBSECRET, function(error) {
+          if (error) {
+            res.send({success:0});
           } else {
-            console.log('cmon');
-            vitRef.once('value', function(snapshot) {
-              console.log('why');
-              console.log(snapshot.val());
-              if (snapshot.val() === null) {
-                console.log('null');
-                cnt += 1;
-                cref.set(cnt);
-                res.send({success:-1});
+            console.log('sec');
+            var vitRef = ref.child('invites/' + req.body.pin);
+            var cref = ref.child('users/' + authData.uid + '/bad_pin_cnt');
+
+            cref.once('value', function(snap) {
+              var v = snap.val();
+              var cnt = parseInt(v) || 0;
+              if (cnt > 9) {
+                res.send({success:-2});
               } else {
-                ref.authWithCustomToken(process.env.MBSECRET, function(error) {
-                  console.log('ok');
-                  if (error) {
-                    res.send({success:0});
+                console.log('what');
+                vitRef.once('value', function(snapshot) {
+                  if (snapshot.val() === null) {
+                    cnt += 1;
+                    cref.set(cnt);
+                    res.send({success:-1});
                   } else {
                     var spotid = snapshot.val().spotid;
                     vitRef.child('users/' + authData.uid).set(true);
