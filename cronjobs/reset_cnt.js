@@ -1,7 +1,9 @@
 'use strict';
+/*jshint camelcase: false */
 
 var Firebase = require('firebase');
 var url;
+
 if (process.env.MBPROD === 'true') {
   url = 'https://maybeso.firebaseio.com/';
 } else {
@@ -18,21 +20,20 @@ var exit = function() {
 
 ref.authWithCustomToken(process.env.MBSECRET, function(error) {
   if (!error) {
-    ref.child('invites').orderByChild('ts').once('value', function(snap) {
-      var d = new Date();
-      var oneDayAgo = d.setDate(d.getDate()-1);
-      var val;
-
+    var val;
+    ref.child('users').orderByChild('bad_pin_cnt').once('value', function(snap) {
       snap.forEach(function(s) {
         val = s.val();
 
-        if (val.ts < oneDayAgo) {
-          ref.child('invites/' + s.key()).remove();
+        if (val.bad_pin_cnt) {
+          ref.child('users/' + s.key() + '/bad_pin_cnt').set(0);
         } else {
           exit();
           return true;
         }
       });
+
+      exit();
     });
   } else {
     process.exit();

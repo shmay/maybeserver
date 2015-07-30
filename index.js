@@ -90,16 +90,21 @@ var generateToken = function(ref,spotid,cb) {
   var viteRef = ref.child('invites');
 
   var token = 'X' + randomString(9);
+  var ts;
+  var vite;
 
   viteRef.child(token).once('value', function(snapshot) {
     var exists = (snapshot.val() !== null);
     if (exists) {
       generateToken(ref,spotid,cb);
     } else {
-      viteRef.child(token).set({
+      ts = Date.now();
+      vite = {
         spotid:spotid,
-        ts: Date.now()
-      });
+        ts: ts
+      };
+
+      viteRef.child(token).set(vite);
       cb(token);
     }
   });
@@ -406,6 +411,7 @@ app.post('/join', function (req, res) {
                     });
 
                     uRef.child('spots/' + val.spotid).set(false);
+                    uRef.child('bad_pin_cnt').set(0);
 
                     res.send({ success: 1 });
                   });
@@ -422,7 +428,6 @@ app.post('/join', function (req, res) {
 });
 
 app.post('/join_w_pin', function (req, res) {
-  console.log('join_w_pin');
   if (req.body.token && req.body.pin) {
     ref = new Firebase(url);
 
@@ -434,17 +439,15 @@ app.post('/join_w_pin', function (req, res) {
           if (error) {
             res.send({success:0});
           } else {
-            console.log('sec');
             var vitRef = ref.child('invites/' + req.body.pin);
             var cref = ref.child('users/' + authData.uid + '/bad_pin_cnt');
 
             cref.once('value', function(snap) {
               var v = snap.val();
               var cnt = parseInt(v) || 0;
-              if (cnt > 9) {
+              if (cnt < -9) {
                 res.send({success:-2});
               } else {
-                console.log('what');
                 vitRef.once('value', function(snapshot) {
                   if (snapshot.val() === null) {
                     cnt += 1;
