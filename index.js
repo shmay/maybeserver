@@ -310,6 +310,38 @@ app.post('/remove_user', function (req, res) {
   }
 });
 
+app.post('/logout', function(req,res) {
+  if (req.body.token) {
+    console.log('logout');
+    ref = new Firebase(url);
+
+    ref.authWithCustomToken(req.body.token, function(err,authData) { 
+      if (err) {
+        res.send({success:0});
+      } else {
+        ref.authWithCustomToken(process.env.MBSECRET, function(error) {
+          if (error) {
+            res.send({success: 0});
+          } else {
+            var userRef = ref.child('users/' + authData.uid);
+
+            userRef.child('spots').once('value', function(snap) {
+              var spots = snap.val();
+              for (var spotid in spots) {
+                ref.child('spots/' + spotid + '/users/' + authData.uid + '/isthere').set(2);
+              }
+
+              res.send({success:1});
+            });
+          }
+        });
+      }
+    });
+  } else {
+    res.send({success:0});
+  }
+
+});
 app.post('/leave_spot', function (req, res) {
   if (req.body.token && req.body.spotid) {
     ref = new Firebase(url);
