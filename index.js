@@ -41,7 +41,7 @@ app.post('/new_spot', function (req, res) {
 
         var user = {
           name: b.username,
-          isthere: 2,
+          state: 0,
           admin: true,
         };
 
@@ -115,7 +115,6 @@ app.post('/spot_status_changed', function (req, res) {
 
   if (req.body.token && req.body.spotid && (status === 0 || status === 1 || status === 2)) {
 
-    console.log('good');
     ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
@@ -128,10 +127,12 @@ app.post('/spot_status_changed', function (req, res) {
           } else {
             ref.child('users/' + authData.uid + '/spots/' + req.body.spotid).once('value', function(snap) {
               var val = snap.val();
+
               if (val === null || val === -1) {
                 res.send({success:-1});
               } else if (val === true || val === false) {
-                ref.child('spots/' + req.body.spotid + '/users/' + authData.uid + '/isthere').set(status);
+                ref.child('spots/' + req.body.spotid + '/users/' + authData.uid + '/state').set(status);
+                res.send({success:1});
               }
             });
           }
@@ -249,7 +250,6 @@ app.post('/remove_spot', function (req, res) {
             uRef.once('value', function(snap) {
               var val = snap.val();
               if (val === true) {
-                res.send({success:-1});
                 ref.child('spots/' + req.body.spotid + '/users').once('value', function(snap) {
                   var users = snap.val();
 
@@ -258,7 +258,10 @@ app.post('/remove_spot', function (req, res) {
                   }
 
                   ref.child('spots/' + req.body.spotid).remove();
+
+                  res.send({success:1});
                 });
+
               } else {
                 res.send({success: -1});
               }
@@ -328,7 +331,7 @@ app.post('/logout', function(req,res) {
             userRef.child('spots').once('value', function(snap) {
               var spots = snap.val();
               for (var spotid in spots) {
-                ref.child('spots/' + spotid + '/users/' + authData.uid + '/isthere').set(2);
+                ref.child('spots/' + spotid + '/users/' + authData.uid + '/state').set(0);
               }
 
               res.send({success:1});
@@ -438,7 +441,7 @@ app.post('/join', function (req, res) {
 
                     spotRef.child('users/' + authData.uid).set({
                       name: name,
-                      isthere: 2,
+                      state: 0,
                       admin: false
                     });
 
