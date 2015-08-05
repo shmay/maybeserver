@@ -114,7 +114,6 @@ app.post('/spot_status_changed', function (req, res) {
   var status = parseInt(req.body.status);
 
   if (req.body.token && req.body.spotid && (status === 0 || status === 1 || status === 2)) {
-
     ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
@@ -129,10 +128,14 @@ app.post('/spot_status_changed', function (req, res) {
               var val = snap.val();
 
               if (val === null || val === -1) {
+                console.log('huh');
                 res.send({success:-1});
               } else if (val === true || val === false) {
                 ref.child('spots/' + req.body.spotid + '/users/' + authData.uid + '/state').set(status);
-                res.send({success:1});
+                res.send({
+                  success:1,
+                  status: status
+                });
               }
             });
           }
