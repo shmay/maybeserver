@@ -19,7 +19,39 @@ if (process.env.MBPROD === 'true') {
 
 app.get('/', function (req, res) {
   res.writeHead(200);
+  console.log('ehhloworld: ' + req.query.sid);
   res.end('hello world\n');
+});
+
+app.post('/reset', function (req, res) {
+  if (req.body.token) {
+    ref = new Firebase(url);
+
+    ref.authWithCustomToken(req.body.token, function(err,authData) { 
+      if (err) {
+        res.send({success:0});
+      } else {
+        ref.authWithCustomToken(process.env.MBSECRET, function(error) {
+          if (error) {
+            res.send({success: 0});
+          } else {
+            var userRef = ref.child('users/' + authData.uid);
+
+            userRef.child('spots').once('value', function(snap) {
+              var spots = snap.val();
+              for (var spotid in spots) {
+                ref.child('spots/' + spotid + '/users/' + authData.uid + '/state').set(0);
+              }
+
+              res.send({success:1});
+            });
+
+          }
+        });
+
+      }
+    });
+  }
 });
 
 app.post('/new_spot', function (req, res) {
@@ -128,7 +160,6 @@ app.post('/spot_status_changed', function (req, res) {
               var val = snap.val();
 
               if (val === null || val === -1) {
-                console.log('huh');
                 res.send({success:-1});
               } else if (val === true || val === false) {
                 ref.child('spots/' + req.body.spotid + '/users/' + authData.uid + '/state').set(status);
@@ -518,12 +549,11 @@ app.post('/join_w_pin', function (req, res) {
       }
     });
   } else {
-    console.log('whoots');
     res.send({success:0});
   }
 });
 
-var server = app.listen(3000, function () {
+var server = app.listen(3000, '0.0.0.0', function () {
   var host = server.address().address;
   var port = server.address().port;
 
