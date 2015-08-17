@@ -132,6 +132,7 @@ var generateToken = function(ref,spotid,cb) {
     } else {
       ts = Date.now();
       vite = {
+        '.priority': ts,
         spotid:spotid,
         ts: ts
       };

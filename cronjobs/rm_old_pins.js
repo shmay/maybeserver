@@ -18,7 +18,7 @@ var exit = function() {
 
 ref.authWithCustomToken(process.env.MBSECRET, function(error) {
   if (!error) {
-    ref.child('invites').orderByChild('ts').once('value', function(snap) {
+    ref.child('invites').orderByPriority().once('value', function(snap) {
       var d = new Date();
       var oneDayAgo = d.setDate(d.getDate()-1);
       var val;
@@ -33,6 +33,8 @@ ref.authWithCustomToken(process.env.MBSECRET, function(error) {
           return true;
         }
       });
+
+      exit();
     });
   } else {
     process.exit();
