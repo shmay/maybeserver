@@ -11,10 +11,13 @@ app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x
 /////app.use(multer()); // for parsing multipart/form-data
 
 var url;
+var reviewUid;
 if (process.env.MBPROD === 'true') {
   url = 'https://maybeso.firebaseio.com/';
+  reviewUid = 'simplelogin:1';
 } else {
   url = 'https://androidkye.firebaseio.com/';
+  reviewUid = 'simplelogin:3';
 }
 
 app.get('/', function (req, res) {
@@ -450,8 +453,6 @@ app.post('/update_name', function (req, res) {
 
 app.post('/join', function (req, res) {
   if (req.body.token && req.body.pin) {
-    console.log('PIN');
-    console.log(req.body.pin);
     ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
@@ -502,7 +503,10 @@ app.post('/join_w_pin', function (req, res) {
     ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
-      if (err) {
+      var isReviewUser = authData.uid === reviewUid;
+      var cannotAuth = authData.provider === 'password' && !isReviewUser;
+
+      if (err || cannotAuth) {
         res.send({success:0});
       } else {
         ref.authWithCustomToken(process.env.MBSECRET, function(error) {
