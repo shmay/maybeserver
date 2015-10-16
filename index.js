@@ -4,8 +4,8 @@ var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
 var Firebase = require('firebase');
+
 //var crypto = require('crypto');
-var ref;
 app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 /////app.use(multer()); // for parsing multipart/form-data
@@ -28,7 +28,7 @@ app.get('/', function (req, res) {
 
 app.post('/reset', function (req, res) {
   if (req.body.token) {
-    ref = new Firebase(url);
+    var ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
       if (err) {
@@ -36,7 +36,7 @@ app.post('/reset', function (req, res) {
       } else {
         ref.authWithCustomToken(process.env.MBSECRET, function(error) {
           if (error) {
-            res.send({success: 0});
+            res.send({success: -1});
           } else {
             var userRef = ref.child('users/' + authData.uid);
 
@@ -59,7 +59,7 @@ app.post('/reset', function (req, res) {
 
 app.post('/new_spot', function (req, res) {
   if (req.body.token) {
-    ref = new Firebase(url);
+    var ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err) { 
       if (err) {
@@ -82,7 +82,7 @@ app.post('/new_spot', function (req, res) {
 
         ref.authWithCustomToken(process.env.MBSECRET, function(error) {
           if (error) {
-            res.send({success:0});
+            res.send({success:-1});
           } else {
             var spotRef = ref.child('spots').push(spot);
 
@@ -107,7 +107,7 @@ app.post('/new_spot', function (req, res) {
       }
     });
   } else {
-    res.send({success:0});
+    res.send({success:-10});
   }
 });
 
@@ -150,7 +150,7 @@ app.post('/spot_status_changed', function (req, res) {
   var status = parseInt(req.body.status);
 
   if (req.body.token && req.body.spotid && (status === 0 || status === 1 || status === 2)) {
-    ref = new Firebase(url);
+    var ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
       if (err) {
@@ -182,7 +182,7 @@ app.post('/spot_status_changed', function (req, res) {
 
 app.post('/gen_invite', function (req, res) {
   if (req.body.token && req.body.spotid) {
-    ref = new Firebase(url);
+    var ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
       if (err) {
@@ -214,7 +214,7 @@ app.post('/edit_spot', function (req, res) {
   if (req.body.token && req.body.spotid) {
     console.log('edit_spot');
     console.log(req.body.name);
-    ref = new Firebase(url);
+    var ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
       if (err) {
@@ -242,7 +242,7 @@ app.post('/edit_spot', function (req, res) {
 app.post('/remove_fence_for_user', function (req, res) {
   console.log('remove_fence_for_user');
   if (req.body.token && req.body.spotid) {
-    ref = new Firebase(url);
+    var ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
       if (err) {
@@ -273,7 +273,7 @@ app.post('/remove_fence_for_user', function (req, res) {
 
 app.post('/remove_spot', function (req, res) {
   if (req.body.token && req.body.spotid) {
-    ref = new Firebase(url);
+    var ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
       if (err) {
@@ -313,7 +313,7 @@ app.post('/remove_spot', function (req, res) {
 
 app.post('/remove_user', function (req, res) {
   if (req.body.token && req.body.spotid && req.body.uid) {
-    ref = new Firebase(url);
+    var ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) {
       if (err) {
@@ -354,7 +354,7 @@ app.post('/remove_user', function (req, res) {
 app.post('/logout', function(req,res) {
   if (req.body.token) {
     console.log('logout');
-    ref = new Firebase(url);
+    var ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
       if (err) {
@@ -385,7 +385,7 @@ app.post('/logout', function(req,res) {
 });
 app.post('/leave_spot', function (req, res) {
   if (req.body.token && req.body.spotid) {
-    ref = new Firebase(url);
+    var ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
       if (err) {
@@ -418,7 +418,7 @@ app.post('/leave_spot', function (req, res) {
 app.post('/update_name', function (req, res) {
   console.log('update_name');
   if (req.body.token && req.body.newname) {
-    ref = new Firebase(url);
+    var ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
       if (err) {
@@ -453,7 +453,7 @@ app.post('/update_name', function (req, res) {
 
 app.post('/join', function (req, res) {
   if (req.body.token && req.body.pin) {
-    ref = new Firebase(url);
+    var ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
       if (err) {
@@ -500,7 +500,7 @@ app.post('/join', function (req, res) {
 
 app.post('/join_w_pin', function (req, res) {
   if (req.body.token && req.body.pin) {
-    ref = new Firebase(url);
+    var ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
       var isReviewUser = authData.uid === reviewUid;
