@@ -474,17 +474,22 @@ app.post('/join', function (req, res) {
                   uRef.once('value', function(snap) {
                     var name = snap.val().name;
                     var spotRef = ref.child('spots/' + val.spotid);
+                    var userSpotRef = spotRef.child('users/' + authData.uid);
 
-                    spotRef.child('users/' + authData.uid).set({
-                      name: name,
-                      state: 0,
-                      admin: false
+                    userSpotRef.once('value', function(snapshot) {
+                      if (!snapshot.val())  {
+                        spotRef.child('users/' + authData.uid).set({
+                          name: name,
+                          state: 0,
+                          admin: false
+                        });
+
+                        uRef.child('spots/' + val.spotid).set(false);
+                        uRef.child('bad_pin_cnt').set(0);
+                      }
+
+                      res.send({ success: 1 });
                     });
-
-                    uRef.child('spots/' + val.spotid).set(false);
-                    uRef.child('bad_pin_cnt').set(0);
-
-                    res.send({ success: 1 });
                   });
                 } else {
                   res.send({success: -2});
@@ -503,10 +508,7 @@ app.post('/join_w_pin', function (req, res) {
     var ref = new Firebase(url);
 
     ref.authWithCustomToken(req.body.token, function(err,authData) { 
-      var isReviewUser = authData.uid === reviewUid;
-      var cannotAuth = authData.provider === 'password' && !isReviewUser;
-
-      if (err || cannotAuth) {
+      if (err) {
         res.send({success:0});
       } else {
         ref.authWithCustomToken(process.env.MBSECRET, function(error) {
